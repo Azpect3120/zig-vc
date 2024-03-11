@@ -11,6 +11,10 @@ But if you dig down a little bit, the commit hash doesn’t reference everything
 
 To see this in action, you’ll dissect the “secret” files underneath the .git directory and see what’s inside of each.
 
+### My Take 
+Basically, files and directories are stored in some way somehow (not sure yet). 
+References to those files and directories are stored as hashed values to the *thing*.
+
 
 ## [The Inner Workings of Git](https://www.kodeco.com/books/advanced-git/v1.0/chapters/1-how-does-git-actually-work)
 Change to your terminal program and navigate to the main directory of your repository. Once you’re there, navigate into the .git directory of your repository:
@@ -78,4 +82,3 @@ Decompose that into a directory name and an object identifier:
 Directory: d8
 Object identifier: 3ab2b104e4addd03947ed3b1ca57b2e68dfc85
 ```
-
