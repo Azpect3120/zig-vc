@@ -7,8 +7,6 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     var allocator = gpa.allocator();
     try parseArgs(allocator);
-
-    print("{d}\n", .{commands.init()});
 }
 
 /// Parse the arguments passed into the program.
