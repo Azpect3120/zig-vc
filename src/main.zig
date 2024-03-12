@@ -27,6 +27,12 @@ fn validateCommand(cmd: [:0]const u8) commands.COMMAND {
         return commands.COMMAND.INIT;
     } else if (std.mem.eql(u8, cmd, "destroy")) {
         return commands.COMMAND.DESTROY;
+    } else if (std.mem.eql(u8, cmd, "status")) {
+        return commands.COMMAND.STATUS;
+    } else if (std.mem.eql(u8, cmd, "track")) {
+        return commands.COMMAND.TRACK;
+    } else if (std.mem.eql(u8, cmd, "commit")) {
+        return commands.COMMAND.COMMIT;
     } else {
         return commands.COMMAND.INVALID;
     }
@@ -34,13 +40,21 @@ fn validateCommand(cmd: [:0]const u8) commands.COMMAND {
 
 /// After parsing the command and arguments, execute the command.
 fn executeCommand(allocator: std.mem.Allocator, cmd: commands.COMMAND, args: std.ArrayList([:0]const u8)) !void {
-    _ = args;
     switch (cmd) {
         commands.COMMAND.INIT => {
             try commands.init(allocator);
         },
         commands.COMMAND.DESTROY => {
             try commands.destory(allocator);
+        },
+        commands.COMMAND.STATUS => {
+            try commands.status(allocator);
+        },
+        commands.COMMAND.TRACK => {
+            try commands.track(allocator, args);
+        },
+        commands.COMMAND.COMMIT => {
+            try commands.commit(allocator);
         },
         commands.COMMAND.INVALID => {
             print("Invalid command\n", .{});

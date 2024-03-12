@@ -8,10 +8,11 @@
         ...
     objects/        # Stores objects/blobs
         ...
-    refs/           # Pointers to commits
-        tags/       # Pointers to tags? (I think I will leave this out)
+    refs/
         heads/      # Pointers to branches
         remotes/    # Pointers to remote connections
+        commits/    # Pointers to commits
+        TRACKED     # Pointers to tracked files
         ...
     logs/           # Version control logs (might not be necessary)
         ...
@@ -32,3 +33,17 @@
 
 - `history`: Show the history of the version control system
 
+
+# How this shit works
+When I add a file, I need to hash the name of the file and store it in the objects directory, in its own directory 
+which is named by the first byte of the hash. The contents are the contents of the file being added as a hash or something.
+
+# Commits
+When I commit, I need to take all the objects (or something) and then create a ref file in the `refs/commits/` directory 
+which is a pointer to a file created in the `objects/` directory. That file is going to store the name (path) and the 
+reference to the blob/object.
+
+# Tracking
+When a file is tracked an object/blob is created and a reference to that blob in the `refs/TRACKED` file. Somewhere 
+we need to store the name of the object/blob/file (not sure where yet). When a commit happens, this file will be used
+to determine which files to include in the commit.
