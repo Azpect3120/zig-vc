@@ -1,6 +1,5 @@
 const std = @import("std");
 const commands = @import("commands.zig");
-
 const print = std.debug.print;
 
 pub fn main() !void {
@@ -19,15 +18,35 @@ fn parseArgs(allocator: std.mem.Allocator) !void {
     while (args.next()) |arg| try arguments.append(arg);
 
     const cmd = validateCommand(command);
-    print("Command: {any}\n", .{cmd});
-    print("Arguments: {s}\n", .{arguments.items});
+    try executeCommand(allocator, cmd, arguments);
 }
 
 /// Validate the command passed into the program.
 fn validateCommand(cmd: [:0]const u8) commands.COMMAND {
     if (std.mem.eql(u8, cmd, "init")) {
         return commands.COMMAND.INIT;
+    } else if (std.mem.eql(u8, cmd, "destroy")) {
+        return commands.COMMAND.DESTROY;
     } else {
         return commands.COMMAND.INVALID;
+    }
+}
+
+/// After parsing the command and arguments, execute the command.
+fn executeCommand(allocator: std.mem.Allocator, cmd: commands.COMMAND, args: std.ArrayList([:0]const u8)) !void {
+    _ = args;
+    switch (cmd) {
+        commands.COMMAND.INIT => {
+            try commands.init(allocator);
+        },
+        commands.COMMAND.DESTROY => {
+            try commands.destory(allocator);
+        },
+        commands.COMMAND.INVALID => {
+            print("Invalid command\n", .{});
+        },
+        else => {
+            print("Unknown command\n", .{});
+        },
     }
 }
