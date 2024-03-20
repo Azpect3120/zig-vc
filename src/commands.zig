@@ -61,6 +61,7 @@ pub fn track(allocator: std.mem.Allocator, args: std.ArrayList([:0]const u8)) !v
             continue;
         };
 
+        // Recursively track directories provided
         try trackDir(allocator, tracked, path);
     }
 }
@@ -71,7 +72,8 @@ fn trackDir(allocator: std.mem.Allocator, tracked: std.fs.File, path: []u8) !voi
     const hash = std.fmt.fmtSliceHexLower(&util.fileSum(path));
 
     // Prevent tracking the .ziggit and .git directory
-    if (std.mem.indexOf(u8, path, ".ziggit") != null or std.mem.indexOf(u8, path, ".git") != null) return;
+    // const dir_name = std.fs.path.basename(path);
+    // if (std.mem.eql(u8, dir_name, ".git") or std.mem.eql(u8, dir_name, ".git")) return;
 
     // Path a directory
     if (util.isDir(path)) {
@@ -89,13 +91,11 @@ fn trackDir(allocator: std.mem.Allocator, tracked: std.fs.File, path: []u8) !voi
             const entry_path = try format(allocator, "{s}/{s}", .{ path, entry.path });
 
             // Recursively track the directory
-            // Multi-thread this
-            // try trackDir(allocator, tracked, entry_path);
             _ = try std.Thread.spawn(.{ .allocator = allocator }, trackDir, .{ allocator, tracked, entry_path });
 
             // Output the tracking
             // WAY TOO MUCH! Should only print the first level of directories
-            // try stdout.print("Tracking: {s}\n", .{entry_path});
+            try stdout.print("Tracking: {s}\n", .{entry_path});
         }
         return;
     }
