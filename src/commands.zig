@@ -53,6 +53,9 @@ pub fn track(allocator: std.mem.Allocator, args: std.ArrayList([:0]const u8)) !v
     const tracked = try std.fs.cwd().openFile(".ziggit/refs/TRACKED", .{ .mode = .read_write });
     defer tracked.close();
 
+    // Create mutex for the tracked file
+    var mutex = std.Thread.Mutex{};
+
     // Track files found in the arguments
     for (args.items) |arg| {
         // Get path to file or directory
@@ -62,18 +65,18 @@ pub fn track(allocator: std.mem.Allocator, args: std.ArrayList([:0]const u8)) !v
         };
 
         // Recursively track directories provided
-        try trackDir(allocator, tracked, path);
+        try trackDir(allocator, tracked, path, &mutex);
     }
 }
 
 /// Recursively track a directory
-fn trackDir(allocator: std.mem.Allocator, tracked: std.fs.File, path: []u8) !void {
+fn trackDir(allocator: std.mem.Allocator, tracked: std.fs.File, path: []u8, mutex: *std.Thread.Mutex) !void {
     // Create hash to the file
     const hash = std.fmt.fmtSliceHexLower(&util.fileSum(path));
 
     // Prevent tracking the .ziggit and .git directory
-    // const dir_name = std.fs.path.basename(path);
-    // if (std.mem.eql(u8, dir_name, ".git") or std.mem.eql(u8, dir_name, ".git")) return;
+    const dir_name = std.fs.path.basename(path);
+    if (std.mem.eql(u8, dir_name, ".git") or std.mem.eql(u8, dir_name, ".git")) return;
 
     // Path a directory
     if (util.isDir(path)) {
@@ -91,7 +94,8 @@ fn trackDir(allocator: std.mem.Allocator, tracked: std.fs.File, path: []u8) !voi
             const entry_path = try format(allocator, "{s}/{s}", .{ path, entry.path });
 
             // Recursively track the directory
-            _ = try std.Thread.spawn(.{ .allocator = allocator }, trackDir, .{ allocator, tracked, entry_path });
+            // _ = try std.Thread.spawn(.{ .allocator = allocator }, trackDir, .{ allocator, tracked, entry_path, mutex });
+            try trackDir(allocator, tracked, entry_path, mutex);
 
             // Output the tracking
             // WAY TOO MUCH! Should only print the first level of directories
@@ -112,7 +116,10 @@ fn trackDir(allocator: std.mem.Allocator, tracked: std.fs.File, path: []u8) !voi
 
     // Add the blob to the TRACKED file
     // This is needs to be fixed to NOT override the file, instead append
-    try tracked.writeAll(try format(allocator, "{s}\n", .{hash}));
+    while (!mutex.tryLock()) {
+        try tracked.writeAll(try format(allocator, "{s}\n", .{hash}));
+        mutex.unlock();
+    }
 
     // Output the tracking
     // WAY TOO MUCH! Should only print the first level of directories
