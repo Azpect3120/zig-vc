@@ -8,9 +8,16 @@ var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 var allocator = gpa.allocator();
 
 pub fn main() !void {
-    const input_data = @embedFile("input.txt");
+    const input_data = @embedFile("./");
 
-    const compressed_data = try compression.compress(allocator, input_data);
+    // var compression_list = std.ArrayList(u8).init(allocator);
+    // defer compression_list.deinit();
+    // try compression.compress(allocator, compression_list.writer(), input_data);
 
-    print("Compressed from {d} bytes to {d} bytes!\n", .{ input_data.len, compressed_data.len });
+    const output = try std.fs.cwd().createFile("output.txt", .{ .truncate = false, .read = true });
+    defer output.close();
+
+    try compression.compress(allocator, output.writer(), input_data);
+
+    // print("Compressed from {d} bytes to {d} bytes!\n", .{ input_data.len,  });
 }
