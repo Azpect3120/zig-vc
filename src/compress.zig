@@ -1,19 +1,15 @@
 const std = @import("std");
+const zlib = std.compress.zlib;
 
-// Global allocator
-var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-var allocator = gpa.allocator();
+pub fn compress(allocator: std.mem.Allocator, str: []const u8) ![]u8 {
+    var comp_data = std.ArrayList(u8).init(allocator);
+    defer comp_data.deinit();
 
-pub fn compress(str: []const u8) !usize {
-    var list = std.ArrayList(u8).init(allocator);
-    defer list.deinit();
+    var compressor = try zlib.compressStream(allocator, comp_data.writer(), .{ .level = zlib.CompressionLevel.default });
+    defer compressor.deinit();
 
-    var writer = list.writer();
+    try compressor.writer().writeAll(str);
+    try compressor.finish();
 
-    const cmp = std.compress.deflate.Compressor(@TypeOf(writer));
-    defer cmp.deinit();
-    // cmp.writer
-
-    const bytes_written = try cmp.write(&cmp, str);
-    return bytes_written;
+    return comp_data.items;
 }
