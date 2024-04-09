@@ -31,6 +31,5 @@ pub fn decompress(allocator: std.mem.Allocator, reader: anytype, writer: anytype
 
     const bytes = try decompressor.reader().readAllAlloc(allocator, std.math.maxInt(usize));
     defer allocator.free(bytes);
-
     try writer.writeAll(bytes);
 }
