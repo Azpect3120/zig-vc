@@ -1,7 +1,7 @@
 const std = @import("std");
 
 /// Open the tracked file. Caller-owned memory is returned.
-fn getTrackedFile() !std.fs.File {
+pub fn getTrackedFile() !std.fs.File {
     const file = try std.fs.cwd().openFile("ziggit/refs/TRACKED", .{ .mode = .read_write });
     return file;
 }

@@ -14,11 +14,7 @@ pub fn new(allocator: std.mem.Allocator, path: []const u8) !void {
     defer file.close();
 
     // Open ziggit directory
-    var base = try std.fs.cwd().openDir("ziggit", .{});
-    defer base.close();
-
-    // Open ziggit objects directory
-    var objects = try base.openDir("objects", .{});
+    var objects = try std.fs.cwd().openDir("ziggit/objects", .{});
     defer objects.close();
 
     // Generate filename hash
@@ -51,4 +47,29 @@ fn writeBlobToInfo(path: []const u8, name: []const u8) !void {
 
     // Write blob info to file
     try blob.writer().writeAll(path);
+}
+
+/// Get the blob file from its name. Caller-owned memory is returned.
+pub fn get(name: []const u8) !std.fs.File {
+    // Open objects directory
+    var objects = try std.fs.cwd().openDir("ziggit/objects", .{});
+    defer objects.close();
+
+    // Open blob file
+    return try objects.openFile(name, .{ .mode = .read_only });
+}
+
+/// Get the blob's data path from its name.
+/// This path is what is stored in the `info` file.
+pub fn getDataPath(allocator: std.mem.Allocator, name: []const u8) ![]u8 {
+    // Open info directory
+    var info = try std.fs.cwd().openDir("ziggit/info", .{});
+    defer info.close();
+
+    // Open blob file
+    const file = try info.openFile(name, .{ .mode = .read_only });
+    defer file.close();
+
+    // Read path from file
+    return file.reader().readAllAlloc(allocator, 1024);
 }
