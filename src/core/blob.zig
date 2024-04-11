@@ -1,6 +1,7 @@
 const std = @import("std");
 const cmp = @import("../util/compress.zig");
 const crypto = @import("../util/crypto.zig");
+const tracked = @import("../core/tracked.zig");
 
 const print = std.debug.print;
 
@@ -32,12 +33,14 @@ pub fn new(allocator: std.mem.Allocator, path: []const u8) !void {
     try cmp.compress(allocator, file.reader(), blob.writer());
 
     // Write blob info to info file
-    try writeBlobToInfo(allocator, path, name);
+    try writeBlobToInfo(path, name);
+
+    // Write entry to tracked file
+    try tracked.add(allocator, name);
 }
 
 /// Add an entry to the blob info file
-fn writeBlobToInfo(allocator: std.mem.Allocator, path: []const u8, name: []const u8) !void {
-    _ = allocator;
+fn writeBlobToInfo(path: []const u8, name: []const u8) !void {
     // Open the info directory
     var info = try std.fs.cwd().openDir("ziggit/info", .{});
     defer info.close();
